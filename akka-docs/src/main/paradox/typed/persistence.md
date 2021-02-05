@@ -585,6 +585,7 @@ Scala
 Java
 :  @@snip [BasicPersistentBehaviorTest.java](/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/BasicPersistentBehaviorTest.java) { #wrapPersistentBehavior }
 
+See also @ref:[Internal logging](persistence.md#internal-logging).
 
 ## Journal failures
 
@@ -665,6 +666,16 @@ be interleaved and might not be interpreted correctly on replay. Cluster Shardin
 active entity (`EventSourcedBehavior`) for each id within a data center.
 @ref:[Replicated Event Sourcing](replicated-eventsourcing.md) supports active-active persistent entities across
 data centers.
+
+## Internal logging
+
+Behind the scenes, a `EventSourcedBehavior` performs different operations like loading snapshots, handling commands, applying and replaying events.
+These operations are logged in debug level using a dedicated internal logger that can be enabled when desired. 
+
+The logger is named after the `ActorContext` logger name, but with `Internal` appended to it. 
+For instance, if the `ActorContext` logger name is `application.TaskManager`, the internal logger will be named `application.TaskManagerInternal`.
+
+For an example on how to have access to the `ActorContext`, see @ref:[Wrapping EventSourcedBehavior](persistence.md#wrapping-eventsourcedbehavior) section.
 
 ## Configuration
 
