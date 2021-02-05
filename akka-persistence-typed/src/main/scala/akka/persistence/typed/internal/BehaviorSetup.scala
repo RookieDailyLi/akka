@@ -6,16 +6,23 @@ package akka.persistence.typed.internal
 
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
-import org.slf4j.{ Logger, MDC }
-import akka.actor.{ Cancellable, ActorRef => ClassicActorRef }
+
 import akka.actor.typed.Signal
 import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.Cancellable
+import akka.actor.{ActorRef => ClassicActorRef}
 import akka.annotation.InternalApi
 import akka.persistence._
 import akka.persistence.typed.ReplicaId
-import akka.persistence.typed.{ EventAdapter, PersistenceId, SnapshotAdapter }
-import akka.persistence.typed.scaladsl.{ EventSourcedBehavior, RetentionCriteria }
+import akka.persistence.typed.scaladsl.EventSourcedBehavior
+import akka.persistence.typed.scaladsl.RetentionCriteria
+import akka.persistence.typed.EventAdapter
+import akka.persistence.typed.PersistenceId
+import akka.persistence.typed.SnapshotAdapter
 import akka.util.OptionVal
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 /**
  * INTERNAL API
@@ -53,7 +60,6 @@ private[akka] final class BehaviorSetup[C, E, S](
 
   import BehaviorSetup._
   import InternalProtocol.RecoveryTickEvent
-
   import akka.actor.typed.scaladsl.adapter._
 
   val persistence: Persistence = Persistence(context.system.toClassic)
@@ -66,11 +72,16 @@ private[akka] final class BehaviorSetup[C, E, S](
   def selfClassic: ClassicActorRef = context.self.toClassic
 
   private var mdcPhase = PersistenceMdc.Initializing
+  
+  private val internalLogger = 
+    LoggerFactory.getLogger(context.log.getName + "Internal") 
+  
   def log: Logger = {
     // MDC is cleared (if used) from aroundReceive in ActorAdapter after processing each message,
     // but important to call `context.log` to mark MDC as used
     PersistenceMdc.setMdc(persistenceId, mdcPhase)
     context.log
+    internalLogger
   }
 
   def setMdcPhase(phaseName: String): BehaviorSetup[C, E, S] = {
